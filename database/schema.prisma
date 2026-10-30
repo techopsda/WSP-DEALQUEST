@@ -1,0 +1,591 @@
+datasource database {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["public","access"]
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+generator fabbrica {
+  provider    = "prisma-fabbrica"
+  output      = "./generated/factories"
+  noTranspile = true
+}
+
+generator erd {
+  provider = "prisma-erd-generator"
+  output   = "../public/databaseERD.svg"
+}
+
+enum GameStatus {
+  notStarted
+  active
+  finalYear
+  waitingForNextYear
+  ended
+  @@schema("public")
+}
+
+enum GlobalEventType {
+  positiveRisk
+  negativeRisk
+  neutral
+  increaseRates
+  maxDebtEquity
+  @@schema("public")
+}
+
+enum LocalEventType {
+  positive
+  negative
+  @@schema("public")
+}
+
+enum NotificationType {
+  endOfYearType
+  equityInvestmentType
+  quizFundingType
+  financingType
+  auctionType
+  localEventType
+  globalEventType
+  accountingType
+  endOfYearEarnings
+  maxDebtFine
+  @@schema("public")
+}
+
+enum PeriodType {
+  welcome
+  gamePreview
+  yearStart
+  equityInvestment
+  questionsPre
+  questions
+  questionsPost
+  analysisPre
+  analysis
+  analysisPost
+  financePre
+  finance
+  financePost
+  auctionPre
+  auction
+  auctionSold
+  auctionPost
+  auctionPostSummary
+  localEventPre
+  localEvent
+  localEventPost
+  globalEventPre
+  globalEvent
+  companyEarnings
+  accountingPre
+  accounting
+  accountingResults
+  accountingSummary
+  yearEnd
+  gameEnd
+  @@schema("public")
+}
+
+enum QuestionType {
+  simple
+  tabular
+  @@schema("public")
+}
+
+enum TeamStatus {
+  awaitingTeamName
+  awaitingTeamMembers
+  awaitingRegistrationCode
+  active
+  awaitingNextPeriod
+  @@schema("public")
+}
+
+enum TournamentStatus {
+  active
+  inactive
+  paused
+  @@schema("public")
+}
+
+model Organisation {
+  createdAt    DateTime?          @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @database.Timestamptz(6)
+  modifiedAt   DateTime?          @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @database.Timestamptz(6)
+  users        UserOrganisation[]
+  parent       Organisation?      @relation(fields: [parentId], references: [id], name: "parentChild")
+  parentId     String?            @database.Uuid
+  children     Organisation[]     @relation(name: "parentChild")
+  createdBy    User?              @relation(fields: [createdById], references: [id], name: "OrganisationCreatedBy")
+  createdById  String?            @database.Uuid
+  modifiedBy   User?              @relation(fields: [modifiedById], references: [id], name: "OrganisationModifiedBy")
+  modifiedById String?            @database.Uuid
+  id           String             @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  name         String
+
+  @@schema("access")
+}
+
+model Permission {
+  createdAt    DateTime?        @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @database.Timestamptz(6)
+  modifiedAt   DateTime?        @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @database.Timestamptz(6)
+  roles        RolePermission[]
+  createdBy    User?            @relation(fields: [createdById], references: [id], name: "PermissionCreatedBy")
+  createdById  String?          @database.Uuid
+  modifiedBy   User?            @relation(fields: [modifiedById], references: [id], name: "PermissionModifiedBy")
+  modifiedById String?          @database.Uuid
+  id           String           @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  name         String
+
+  @@schema("access")
+}
+
+model Role {
+  createdAt         DateTime?              @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @database.Timestamptz(6)
+  modifiedAt        DateTime?              @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @database.Timestamptz(6)
+  userOrganisations UserOrganisationRole[]
+  permissions       RolePermission[]
+  users             UserRole[]
+  createdBy         User?                  @relation(fields: [createdById], references: [id], name: "RoleCreatedBy")
+  createdById       String?                @database.Uuid
+  modifiedBy        User?                  @relation(fields: [modifiedById], references: [id], name: "RoleModifiedBy")
+  modifiedById      String?                @database.Uuid
+  id                String                 @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  name              String
+
+  @@schema("access")
+}
+
+model RolePermission {
+  createdAt    DateTime?  @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @database.Timestamptz(6)
+  modifiedAt   DateTime?  @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @database.Timestamptz(6)
+  role         Role       @relation(fields: [roleId], references: [id])
+  roleId       String     @database.Uuid
+  permission   Permission @relation(fields: [permissionId], references: [id])
+  permissionId String     @database.Uuid
+  createdBy    User?      @relation(fields: [createdById], references: [id], name: "RolePermissionCreatedBy")
+  createdById  String?    @database.Uuid
+  modifiedBy   User?      @relation(fields: [modifiedById], references: [id], name: "RolePermissionModifiedBy")
+  modifiedById String?    @database.Uuid
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+
+  @@schema("access")
+}
+
+model User {
+  organisations                UserOrganisation[]
+  roles                        UserRole[]
+  OrganisationCreated          Organisation[]         @relation(name: "OrganisationCreatedBy")
+  OrganisationModified         Organisation[]         @relation(name: "OrganisationModifiedBy")
+  PermissionCreated            Permission[]           @relation(name: "PermissionCreatedBy")
+  PermissionModified           Permission[]           @relation(name: "PermissionModifiedBy")
+  RoleCreated                  Role[]                 @relation(name: "RoleCreatedBy")
+  RoleModified                 Role[]                 @relation(name: "RoleModifiedBy")
+  RolePermissionCreated        RolePermission[]       @relation(name: "RolePermissionCreatedBy")
+  RolePermissionModified       RolePermission[]       @relation(name: "RolePermissionModifiedBy")
+  UserOrganisationCreated      UserOrganisation[]     @relation(name: "UserOrganisationCreatedBy")
+  UserOrganisationModified     UserOrganisation[]     @relation(name: "UserOrganisationModifiedBy")
+  UserRoleCreated              UserRole[]             @relation(name: "UserRoleCreatedBy")
+  UserRoleModified             UserRole[]             @relation(name: "UserRoleModifiedBy")
+  UserOrganisationRoleCreated  UserOrganisationRole[] @relation(name: "UserOrganisationRoleCreatedBy")
+  UserOrganisationRoleModified UserOrganisationRole[] @relation(name: "UserOrganisationRoleModifiedBy")
+  TournamentCreated            Tournament[]           @relation(name: "TournamentCreatedBy")
+  TournamentModified           Tournament[]           @relation(name: "TournamentModifiedBy")
+  TeamQuestionCreated          TeamQuestion[]         @relation(name: "TeamQuestionCreatedBy")
+  TeamQuestionModified         TeamQuestion[]         @relation(name: "TeamQuestionModifiedBy")
+  BidCreated                   Bid[]                  @relation(name: "BidCreatedBy")
+  BidModified                  Bid[]                  @relation(name: "BidModifiedBy")
+  NotificationCreated          Notification[]         @relation(name: "NotificationCreatedBy")
+  NotificationModified         Notification[]         @relation(name: "NotificationModifiedBy")
+  id                           String                 @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  firstName                    String?
+  lastName                     String?
+  metadata                     Json?
+  email                        String                 @unique
+
+  @@schema("access")
+}
+
+model UserOrganisation {
+  createdAt      DateTime?              @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @database.Timestamptz(6)
+  modifiedAt     DateTime?              @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @database.Timestamptz(6)
+  user           User                   @relation(fields: [userId], references: [id])
+  userId         String                 @database.Uuid
+  organisation   Organisation           @relation(fields: [organisationId], references: [id])
+  organisationId String                 @database.Uuid
+  roles          UserOrganisationRole[]
+  createdBy      User?                  @relation(fields: [createdById], references: [id], name: "UserOrganisationCreatedBy")
+  createdById    String?                @database.Uuid
+  modifiedBy     User?                  @relation(fields: [modifiedById], references: [id], name: "UserOrganisationModifiedBy")
+  modifiedById   String?                @database.Uuid
+  id             String                 @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+
+  @@schema("access")
+}
+
+model UserOrganisationRole {
+  createdAt          DateTime?        @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @database.Timestamptz(6)
+  modifiedAt         DateTime?        @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @database.Timestamptz(6)
+  userOrganisation   UserOrganisation @relation(fields: [userOrganisationId], references: [id])
+  userOrganisationId String           @database.Uuid
+  role               Role             @relation(fields: [roleId], references: [id])
+  roleId             String           @database.Uuid
+  createdBy          User?            @relation(fields: [createdById], references: [id], name: "UserOrganisationRoleCreatedBy")
+  createdById        String?          @database.Uuid
+  modifiedBy         User?            @relation(fields: [modifiedById], references: [id], name: "UserOrganisationRoleModifiedBy")
+  modifiedById       String?          @database.Uuid
+  id                 String           @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+
+  @@schema("access")
+}
+
+model UserRole {
+  createdAt    DateTime? @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @database.Timestamptz(6)
+  modifiedAt   DateTime? @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @database.Timestamptz(6)
+  user         User      @relation(fields: [userId], references: [id])
+  userId       String    @database.Uuid
+  role         Role      @relation(fields: [roleId], references: [id])
+  roleId       String    @database.Uuid
+  createdBy    User?     @relation(fields: [createdById], references: [id], name: "UserRoleCreatedBy")
+  createdById  String?   @database.Uuid
+  modifiedBy   User?     @relation(fields: [modifiedById], references: [id], name: "UserRoleModifiedBy")
+  modifiedById String?   @database.Uuid
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+
+  @@schema("access")
+}
+
+model AccountsSheet {
+  team             Team     @relation(fields: [teamId], references: [id])
+  teamId           String   @database.Uuid
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  year             Int
+  netIncome        Boolean?
+  equity           Boolean?
+  cash             Boolean?
+  accountingInputs Json?
+
+  @@schema("public")
+}
+
+model Answer {
+  question        Question       @relation(fields: [questionId], references: [id])
+  questionId      String         @database.Uuid
+  correctQuestion Question?      @relation(name: "correctAnswer")
+  teamQuestion    TeamQuestion[]
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  answer          String
+
+  @@schema("public")
+}
+
+model Auction {
+  company          Company   @relation(fields: [companyId], references: [id])
+  companyId        String    @database.Uuid
+  game             Game      @relation(fields: [gameId], references: [id])
+  gameId           String    @database.Uuid
+  bid              Bid[]
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  year             Int
+  lot              Int
+  active           Boolean
+  sold             Boolean   @default(false)
+  auctionStartTime DateTime?
+  auctionEndTime   DateTime?
+
+  @@schema("public")
+}
+
+model BalanceSheet {
+  team             Team   @relation(fields: [teamId], references: [id])
+  teamId           String @database.Uuid
+  id               String @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  year             Int
+  cash             Int
+  equity           Int
+  debt             Int
+  roundFund        Int?
+  quizFund         Int?
+  financingFund    Int?
+  localEventFund   Int?
+  globalEventFund  Int?
+  auctionSpendings Int?
+  maxDebtFine      Int?
+
+  @@schema("public")
+}
+
+model Bid {
+  createdAt    DateTime? @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @database.Timestamptz(6)
+  modifiedAt   DateTime? @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @database.Timestamptz(6)
+  auction      Auction   @relation(fields: [auctionId], references: [id])
+  auctionId    String    @database.Uuid
+  company      Company   @relation(fields: [companyId], references: [id])
+  companyId    String    @database.Uuid
+  game         Game      @relation(fields: [gameId], references: [id])
+  gameId       String    @database.Uuid
+  team         Team      @relation(references: [id], fields: [teamId])
+  teamId       String    @database.Uuid
+  createdBy    User?     @relation(fields: [createdById], references: [id], name: "BidCreatedBy")
+  createdById  String?   @database.Uuid
+  modifiedBy   User?     @relation(fields: [modifiedById], references: [id], name: "BidModifiedBy")
+  modifiedById String?   @database.Uuid
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  amount       Int
+
+  @@schema("public")
+}
+
+model Company {
+  auction     Auction[]
+  bid         Bid[]
+  sector      Sector        @relation(fields: [sectorId], references: [id])
+  sectorId    String        @database.Uuid
+  earnings    Earnings[]
+  teamCompany TeamCompany[]
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  name        String
+  reserve     Int
+  risk        Int
+  year        Int
+  salePrice   Int
+
+  @@schema("public")
+}
+
+model Earnings {
+  company   Company @relation(fields: [companyId], references: [id])
+  companyId String  @database.Uuid
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  year      Int
+  amount    Int
+
+  @@schema("public")
+}
+
+model Finance {
+  team             Team   @relation(references: [id], fields: [teamId])
+  teamId           String @database.Uuid
+  id               String @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  year             Int
+  amountDebtPaid   Int?
+  amountIncomeSale Int?
+  amountBorrowed   Int?
+
+  @@schema("public")
+}
+
+model Game {
+  auction         Auction[]
+  bid             Bid[]
+  tournament      Tournament     @relation(fields: [tournamentId], references: [id])
+  tournamentId    String         @database.Uuid
+  periodId        Period[]
+  notification    Notification[]
+  team            Team[]
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  year            Int
+  stage           Int
+  period          Int            @default(0)
+  periodType      PeriodType     @default(welcome)
+  status          GameStatus     @default(notStarted)
+  stageStartTime  DateTime?
+  stageEndTime    DateTime?
+  stagePausedTime DateTime?
+
+  @@schema("public")
+}
+
+model GlobalEvent {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  name        String
+  description String
+  orderNo     Int
+  type        GlobalEventType
+
+  @@schema("public")
+}
+
+model JobTitle {
+  member Member[]
+  id     String   @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  name   String
+
+  @@schema("public")
+}
+
+model LocalEvent {
+  localEvents TeamLocalEvent[]
+  id          String           @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  name        String
+  description String
+  output      String
+  type        LocalEventType
+
+  @@schema("public")
+}
+
+model Member {
+  jobTitle   JobTitle @relation(fields: [jobTitleId], references: [id])
+  jobTitleId String   @database.Uuid
+  team       Team     @relation(fields: [teamId], references: [id])
+  teamId     String   @database.Uuid
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  name       String
+
+  @@schema("public")
+}
+
+model Notification {
+  createdAt    DateTime?        @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @database.Timestamptz(6)
+  modifiedAt   DateTime?        @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @database.Timestamptz(6)
+  game         Game?            @relation(fields: [gameId], references: [id])
+  gameId       String?          @database.Uuid
+  team         Team?            @relation(fields: [teamId], references: [id])
+  teamId       String?          @database.Uuid
+  createdBy    User?            @relation(fields: [createdById], references: [id], name: "NotificationCreatedBy")
+  createdById  String?          @database.Uuid
+  modifiedBy   User?            @relation(fields: [modifiedById], references: [id], name: "NotificationModifiedBy")
+  modifiedById String?          @database.Uuid
+  id           String           @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  year         Int
+  stage        Int
+  message      Json
+  type         NotificationType
+
+  @@schema("public")
+}
+
+model Period {
+  game         Game       @relation(fields: [gameId], references: [id])
+  gameId       String     @database.Uuid
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  year         Int
+  periodOrder  Int
+  stage        Int
+  periodLength Int
+  type         PeriodType
+
+  @@schema("public")
+}
+
+model Question {
+  answer          Answer[]
+  correctAnswer   Answer?        @relation(name: "correctAnswer", fields: [correctAnswerId], references: [id])
+  correctAnswerId String?        @unique @database.Uuid
+  questions       TeamQuestion[]
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  name            String
+  type            QuestionType   @default(simple)
+  metadata        Json?
+  year            Int
+
+  @@schema("public")
+}
+
+model Sector {
+  company Company[]
+  id      String    @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  name    String    @unique
+
+  @@schema("public")
+}
+
+model Setting {
+  id    String @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  key   String @unique
+  value Json
+
+  @@schema("public")
+}
+
+model Team {
+  balanceSheet       BalanceSheet[]
+  bid                Bid[]
+  finance            Finance[]
+  member             Member[]
+  notification       Notification[]
+  game               Game?            @relation(fields: [gameId], references: [id])
+  gameId             String?          @database.Uuid
+  teams              TeamQuestion[]
+  tournament         Tournament       @relation(fields: [tournamentId], references: [id])
+  tournamentId       String           @database.Uuid
+  teamCompany        TeamCompany[]
+  teamEvents         TeamLocalEvent[]
+  accountsSheet      AccountsSheet[]
+  id                 String           @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  name               String?
+  status             TeamStatus
+  gameRating         Int?
+  registrationNumber String?
+
+  @@schema("public")
+}
+
+model TeamCompany {
+  company    Company @relation(fields: [companyId], references: [id])
+  companyId  String  @database.Uuid
+  team       Team    @relation(references: [id], fields: [teamId])
+  teamId     String  @database.Uuid
+  id         String  @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  yearBought Int
+  yearSold   Int?
+
+  @@schema("public")
+}
+
+model TeamLocalEvent {
+  team         Team       @relation(fields: [teamId], references: [id])
+  teamId       String     @database.Uuid
+  localEvent   LocalEvent @relation(fields: [localEventId], references: [id])
+  localEventId String     @database.Uuid
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  year         Int
+  cardSelected Int?
+
+  @@schema("public")
+}
+
+model TeamQuestion {
+  orderNumber      Int?
+  createdAt        DateTime? @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @database.Timestamptz(6)
+  modifiedAt       DateTime? @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @database.Timestamptz(6)
+  question         Question  @relation(fields: [questionId], references: [id])
+  questionId       String    @database.Uuid
+  team             Team      @relation(fields: [teamId], references: [id])
+  teamId           String    @database.Uuid
+  selectedAnswer   Answer?   @relation(fields: [selectedAnswerId], references: [id])
+  selectedAnswerId String?   @database.Uuid
+  createdBy        User?     @relation(fields: [createdById], references: [id], name: "TeamQuestionCreatedBy")
+  createdById      String?   @database.Uuid
+  modifiedBy       User?     @relation(fields: [modifiedById], references: [id], name: "TeamQuestionModifiedBy")
+  modifiedById     String?   @database.Uuid
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+
+  @@schema("public")
+}
+
+model Tournament {
+  createdAt      DateTime?        @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @database.Timestamptz(6)
+  modifiedAt     DateTime?        @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @database.Timestamptz(6)
+  game           Game[]
+  team           Team[]
+  createdBy      User?            @relation(fields: [createdById], references: [id], name: "TournamentCreatedBy")
+  createdById    String?          @database.Uuid
+  modifiedBy     User?            @relation(fields: [modifiedById], references: [id], name: "TournamentModifiedBy")
+  modifiedById   String?          @database.Uuid
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @database.Uuid
+  lobbyCode      String
+  finalYear      Int?             @default(6)
+  practiceRound  Boolean
+  status         TournamentStatus @default(active)
+  instructorName String?
+
+  @@schema("public")
+  @@index([lobbyCode])
+}

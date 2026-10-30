@@ -1,0 +1,4 @@
+<h2>Magic Link</h2>
+
+<p>Follow this link to login:</p>
+<p><a href="{{ .Data.lastSignInHost }}/YOUR_AUTH_SLUG_GOES_HERE?authenticationRedirect={{ .ConfirmationURL }}">Log In</a></p>

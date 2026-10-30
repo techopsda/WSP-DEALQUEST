@@ -1,0 +1,17 @@
+import { createModel } from 'schemix';
+import UUIDMixin from '../../mixins/UUID.mixin';
+import { withRelations } from '../../relations/util/withRelations';
+import { SCHEMA_NAME } from './_schemaName';
+
+export default withRelations(
+  createModel((AuctionModel) => {
+    AuctionModel.mixin(UUIDMixin)
+      .int('year')
+      .int('lot')
+      .boolean('active')
+      .boolean('sold', { default: false })
+      .dateTime('auctionStartTime', { optional: true })
+      .dateTime('auctionEndTime', { optional: true })
+      .raw(`@@schema("${SCHEMA_NAME}")`);
+  })
+);

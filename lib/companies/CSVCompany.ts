@@ -1,0 +1,21 @@
+export type CSVCompany = {
+  Year: string;
+  'Company Name': string;
+  'Company Sector': string;
+  'Reserve price': string;
+  'Y-3': string | null;
+  'Y-2': string | null;
+  'Y-1': string | null;
+  Y0: string | null;
+  Y1: string | null;
+  Y2: string | null;
+  Y3: string | null;
+  Y4: string | null;
+  Y5: string | null;
+  Y6: string | null;
+  Y7: string | null;
+  Y8: string | null;
+  Y9: string | null;
+  'Risk stars': string;
+  'Sale Price': string;
+};

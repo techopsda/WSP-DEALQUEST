@@ -1,0 +1,10 @@
+/* React admin overrides */
+.RaLayout-contentWithSidebar {
+  width: 100vw;
+}
+
+.RaLayout-content {
+  width: calc(100vw - 230.48px); /* screen width - sidebar width */
+  height: calc(100vh - 171px); /* screen height - header and breadcrumb bar */
+  overflow-y: auto;
+}

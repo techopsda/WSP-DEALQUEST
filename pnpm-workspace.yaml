@@ -1,0 +1,19 @@
+allowBuilds:
+  '@netlify/esbuild': false
+  '@parcel/watcher': false
+  '@prisma/client': true
+  '@prisma/engines': true
+  '@scarf/scarf': false
+  '@tree-sitter-grammars/tree-sitter-yaml': false
+  canvas: false
+  core-js-pure: false
+  esbuild: true
+  prisma: true
+  puppeteer: false
+  sharp: true
+  supabase: true
+  tree-sitter: false
+  tree-sitter-json: false
+  unrs-resolver: true
+overrides:
+  '@supabase/postgrest-js': 1.8.4

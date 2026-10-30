@@ -1,0 +1,252 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+@font-face {
+  font-family: 'IvarText';
+  src: url('/fonts/IvarText-Bold.otf');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    line-height: 1.618;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-family: theme('fontFamily.alpha');
+  }
+
+  /* Set styles for disabled radio buttons and checkboxes */
+  [type='checkbox']:disabled,
+  [type='radio']:disabled {
+    accent-color: theme('colors.gray.400');
+    color: theme('colors.gray.400');
+  }
+
+  select {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20"><path stroke="%23737373" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M6 8l4 4 4-4"/></svg>');
+    background-size: theme('spacing.6');
+    background-position: right theme('spacing.3') center;
+    background-repeat: no-repeat;
+    appearance: none;
+    padding-right: theme('padding.12') !important;
+  }
+
+  [dir='rtl'] select {
+    background-position: left theme('spacing.2') center;
+  }
+
+  /* Checkbox */
+  [type='checkbox']:after {
+    content: '';
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2393B68C' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+    background-size: theme('spacing.6');
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  /* Set styles for invalid select to appear as a placeholder */
+  select:invalid {
+    color: theme('colors.gray.500');
+  }
+
+  /* Remove arrows from number input */
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number'] {
+    -webkit-appearance: none;
+    margin: 0;
+    -moz-appearance: textfield !important;
+  }
+
+  /* Fix for next js */
+  [data-nextjs-scroll-focus-boundary] {
+    display: contents;
+  }
+}
+
+@layer components {
+  /* Buttons */
+
+  .dqButton {
+    display: inline-flex;
+    background-color: theme('colors.success.dark');
+    color: white;
+    text-transform: uppercase;
+    padding: theme('spacing.6') theme('spacing.12');
+    line-height: 1;
+    border-radius: theme('borderRadius.md');
+    font-weight: theme('fontWeight.bold');
+    @apply duration-150;
+  }
+
+  .dqButton:focus {
+    @apply outline-2 outline-success outline-offset-4;
+  }
+
+  .dqButton:disabled {
+    background-color: theme('colors.gray.800');
+    color: theme('colors.gray.500');
+  }
+
+  .dqSecondaryButton {
+    border: 2px solid white;
+    color: white;
+    padding: theme('spacing.4') theme('spacing.9');
+    text-transform: uppercase;
+    font-weight: theme('fontWeight.bold');
+    border-radius: theme('borderRadius.md');
+    @apply duration-150;
+  }
+
+  .dqSecondaryButton:focus {
+    @apply outline-2 outline-alpha-highlight-light outline-offset-4;
+  }
+
+  /* Notifications */
+
+  .dqNotificationPositive strong {
+    color: theme('colors.success.light');
+  }
+
+  .dqNotificationNegative strong {
+    color: theme('colors.error.light');
+  }
+
+  .dqNotificationDebt strong {
+    color: theme('colors.warning.light');
+  }
+
+  .dqAccountingAction {
+    color: #4285f4 !important;
+  }
+
+  .dqCompanyName {
+    color: theme('colors.bravo') !important;
+  }
+
+  /* Table */
+  .dqTable thead th {
+    font-size: theme('fontSize.sm');
+    font-weight: normal;
+    color: theme('colors.alpha.light.900');
+    text-align: left;
+    padding-top: theme('spacing.3');
+    padding-bottom: theme('spacing.3');
+  }
+
+  .dqTable tbody {
+    color: theme('colors.alpha.light.600');
+  }
+
+  .dqTable tbody tr {
+    border-top: 1px solid theme('colors.alpha.400');
+  }
+
+  .dqTable tbody tr:last-of-type {
+    border-bottom: 1px solid theme('colors.alpha.400');
+  }
+
+  .dqTable td,
+  .dqTable th {
+    padding: 0 theme('spacing.3');
+  }
+
+  .dqTable td:first-of-type,
+  .dqTable th:first-of-type,
+  .dqTable td:last-of-type,
+  .dqTable th:last-of-type {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .dqTable tbody td {
+    padding-top: theme('spacing.4');
+    padding-bottom: theme('spacing.4');
+    text-align: left;
+  }
+
+  /* hack for nested tables - needed for analysis */
+  .dqTable table {
+    width: 100%;
+  }
+
+  .dqTable table td,
+  .dqTable table th {
+    padding: 0 theme('spacing.3');
+    text-align: left;
+    width: 14.286%;
+  }
+
+  .dqTable table tr,
+  .dqTable table tr:last-of-type {
+    border: none;
+  }
+
+  /* DQ Numbered List */
+  .dq-numbered-list {
+    counter-reset: li;
+  }
+
+  .dq-numbered-list li::before {
+    counter-increment: li;
+    content: counter(li);
+    color: theme('colors.alpha.200');
+    font-size: theme('fontSize.sm');
+    width: theme('spacing.6');
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid theme('colors.alpha.200');
+    margin-right: theme('spacing.3');
+    border-radius: 100%;
+  }
+
+  /* Animate chevron */
+  .animate-chevron polyline {
+    animation-name: onOff;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+  }
+
+  .animate-chevron polyline:nth-child(even) {
+    animation-delay: 0.5s;
+  }
+
+  @keyframes onOff {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0.4;
+    }
+  }
+
+  .animation-fadeIn {
+    animation-name: fadeIn;
+    animation-duration: 1s;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/* Tooltip override */
+.__floater__arrow polygon {
+  fill: theme('colors.alpha.light.200');
+}
